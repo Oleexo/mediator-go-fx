@@ -28,7 +28,7 @@ jobs:
       # Generate semantic version tag based on commit messages
       - name: Bump version and create tag
         id: tag_version
-        uses: anothrNick/github-tag-action@v1.40.0
+        uses: anothrNick/github-tag-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prefix: "v"
