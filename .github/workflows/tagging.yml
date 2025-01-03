@@ -31,8 +31,8 @@ jobs:
         id: tag_version
         uses: anothrNick/github-tag-action@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          prefix: "v"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
 
       # Push new tag to the repository
       - name: Push tags
