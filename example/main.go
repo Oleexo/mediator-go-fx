@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/Oleexo/mediator-go"
 	mediatorfx "github.com/Oleexo/mediator-go-fx"
 	"go.uber.org/fx"
@@ -28,12 +29,12 @@ func (MyNotificationHandler2) Handle(ctx context.Context, request MyNotification
 	return nil
 }
 
-func NewMyNotificationHandler1() *MyNotificationHandler1 {
-	return &MyNotificationHandler1{}
+func NewMyNotificationHandler1() MyNotificationHandler1 {
+	return MyNotificationHandler1{}
 }
 
-func NewMyNotificationHandler2() *MyNotificationHandler2 {
-	return &MyNotificationHandler2{}
+func NewMyNotificationHandler2() MyNotificationHandler2 {
+	return MyNotificationHandler2{}
 }
 
 type MyRequest struct {
