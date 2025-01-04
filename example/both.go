@@ -15,7 +15,7 @@ type MyNotification struct {
 type MyNotificationHandler1 struct {
 }
 
-func (*MyNotificationHandler1) Handle(ctx context.Context, request MyNotification) error {
+func (MyNotificationHandler1) Handle(ctx context.Context, request MyNotification) error {
 	fmt.Printf("Handler 1\n")
 	return nil
 }
@@ -23,7 +23,7 @@ func (*MyNotificationHandler1) Handle(ctx context.Context, request MyNotificatio
 type MyNotificationHandler2 struct {
 }
 
-func (*MyNotificationHandler2) Handle(ctx context.Context, request MyNotification) error {
+func (MyNotificationHandler2) Handle(ctx context.Context, request MyNotification) error {
 	fmt.Printf("Handler 2\n")
 	return nil
 }
@@ -79,8 +79,8 @@ func main() {
 	var constructor []any
 
 	constructor = append(constructor, mediatorfx.AsRequestHandler[MyRequest, MyResponse](NewMyRequestHandler)...)
-	constructor = append(constructor, mediatorfx.AsNotificationHandler[MyNotification, *MyNotificationHandler1](NewMyNotificationHandler1)...)
-	constructor = append(constructor, mediatorfx.AsNotificationHandler[MyNotification, *MyNotificationHandler2](NewMyNotificationHandler2)...)
+	constructor = append(constructor, mediatorfx.AsNotificationHandler[MyNotification, MyNotificationHandler1](NewMyNotificationHandler1)...)
+	constructor = append(constructor, mediatorfx.AsNotificationHandler[MyNotification, MyNotificationHandler2](NewMyNotificationHandler2)...)
 
 	fx.New(
 		fx.Provide(constructor...),

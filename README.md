@@ -47,11 +47,84 @@ The `mediatorfx.AsNotificationHandler` function also returns an array of registr
 register a notification handler:
 
 ```go
+package main
+
+import (
+	mediatorfx "github.com/Oleexo/mediator-go-fx"
+	"go.uber.org/fx"
+)
+
+type MyNotification struct {
+	Name string
+}
+
+type MyNotificationHandler struct {
+}
+
+func (*MyNotificationHandler) Handle(ctx context.Context, request MyNotification) error {
+	fmt.Printf("Handler 1\n")
+	return nil
+}
+
+
 func main() {
     var constructors []any
 
     // Register handlers
-    constructors = append(constructors, mediatorfx.AsNotificationHandler[MyNotification, *MyNotificationHandler1](NewMyNotificationHandler1)...)
+    constructors = append(constructors, mediatorfx.AsNotificationHandler[MyNotification, *MyNotificationHandler](NewMyNotificationHandler1)...)
+}
+```
+
+### Register a pipeline behavior
+
+The `mediatorfx.AsPipelineBehavior` is use to register pipeline for request.
+
+```go
+package main
+
+import (
+	mediatorfx "github.com/Oleexo/mediator-go-fx"
+	"go.uber.org/fx"
+)
+
+
+func main() {
+
+	app := fx.New(
+		fx.Provide(
+			mediatorfx.AsPipelineBehavior(myPipelineConstructorFunc)
+		),
+	)
+
+	app.Run()
+}
+```
+
+### Add module to Fx
+
+The module will register the necessary object like `mediator.Publisher` or `mediator.Sender` to Fx dependency Injection.
+The module is named `mediatorfx`.
+
+See more about module in official Fx [documentation](https://uber-go.github.io/fx/modules.html)
+
+```go
+package main
+
+import (
+	"github.com/Oleexo/mediator-go"
+	mediatorfx "github.com/Oleexo/mediator-go-fx"
+	"go.uber.org/fx"
+)
+
+func main() {
+	app := fx.New(
+		fx.Provide(
+			// Register all request, request handler, pipeline, ...
+		),
+		mediatorfx.NewModule()
+	)
+
+	app.Run()
 }
 ```
 
