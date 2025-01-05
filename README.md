@@ -33,11 +33,57 @@ The `mediatorfx.AsRequestHandler` function returns an array of registrations. Be
 request handler:
 
 ```go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/Oleexo/mediator-go"
+	mediatorfx "github.com/Oleexo/mediator-go-fx"
+	"go.uber.org/fx"
+)
+
+type MyRequest struct {
+	Name string
+}
+
+func (r MyRequest) String() string {
+	return fmt.Sprintf("MyRequest{Name=%s}", r.Name)
+}
+
+type MyResponse struct {
+	Result string
+}
+
+type MyRequestHandler struct {
+}
+
+func NewMyRequestHandler() *MyRequestHandler {
+	return &MyRequestHandler{}
+}
+
 func main() {
     var constructors []any
 
     // Register handlers
     constructors = append(constructors, mediatorfx.AsRequestHandler[MyRequest, MyResponse](NewMyRequestHandler)...)
+
+	app := fx.New(
+		fx.Provide(constructors...),
+		mediatorfx.NewModule(),
+		fx.Invoke(func(container mediator.SendContainer) {
+			request := MyRequest{}
+			response, err := mediator.SendWithoutContext[MyRequest, MyResponse](container, request)
+			if err != nil {
+				panic(err)
+			}
+
+			fmt.Printf("Response: %s", response.Result)
+		}),
+	)
+
+	app.Run()
 }
 ```
 
@@ -47,11 +93,118 @@ The `mediatorfx.AsNotificationHandler` function also returns an array of registr
 register a notification handler:
 
 ```go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/Oleexo/mediator-go"
+	mediatorfx "github.com/Oleexo/mediator-go-fx"
+	"go.uber.org/fx"
+)
+
+type MyNotification struct {
+	Name string
+}
+
+type MyNotificationHandler struct {
+}
+
+func (MyNotificationHandler) Handle(ctx context.Context, request MyNotification) error {
+	fmt.Printf("Handler 1\n")
+	return nil
+}
+
+
 func main() {
     var constructors []any
 
     // Register handlers
-    constructors = append(constructors, mediatorfx.AsNotificationHandler[MyNotification, *MyNotificationHandler1](NewMyNotificationHandler1)...)
+    constructors = append(constructors, mediatorfx.AsNotificationHandler[MyNotification, *MyNotificationHandler](NewMyNotificationHandler1)...)
+
+	app := fx.New(
+	    fx.Provide(constructors...),
+	    mediatorfx.NewModule(),
+	    fx.Invoke(func(publisher mediator.Publisher) {
+	    	// Send a request
+	    	notification := MyNotification{Name: "World"}
+	    	err := publisher.Publish(context.Background(), notification)
+	    	if err != nil {
+	    		// Handle the error
+	    		panic(err)
+	    	}
+	    }),
+	)
+
+	app.Run()
+}
+```
+
+### Register a pipeline behavior
+
+The `mediatorfx.AsPipelineBehavior` is used to register pipeline for request.
+
+```go
+package main
+
+import (
+	"context"
+	
+	"github.com/Oleexo/mediator-go"
+	mediatorfx "github.com/Oleexo/mediator-go-fx"
+	"go.uber.org/fx"
+)
+
+type MyPipelineBehavior struct {
+	
+}
+
+func (p MyPipelineBehavior) Handle(ctx context.Context, request mediator.BaseRequest, next mediator.RequestHandlerFunc) (interface{}, error) {
+	// your behavior
+	return next()
+}
+
+func myPipelineConstructorFunc() MyPipelineBehavior {
+	return MyPipelineBehavior{}
+}
+
+func main() {
+	app := fx.New(
+		fx.Provide(
+			mediatorfx.AsPipelineBehavior(myPipelineConstructorFunc),
+			mediatorfx.NewModule(),
+		),
+	)
+
+	app.Run()
+}
+```
+
+### Add module to Fx
+
+The module will register the necessary object like `mediator.Publisher` or `mediator.Sender` to Fx dependency Injection.
+The module is named `mediatorfx`.
+
+See more about module in official Fx [documentation](https://uber-go.github.io/fx/modules.html)
+
+```go
+package main
+
+import (
+	mediatorfx "github.com/Oleexo/mediator-go-fx"
+	"go.uber.org/fx"
+)
+
+func main() {
+	app := fx.New(
+		fx.Provide(
+			// Register all request, request handler, pipeline, ...
+		),
+		mediatorfx.NewModule(),
+	)
+
+	app.Run()
 }
 ```
 
@@ -160,8 +313,8 @@ Learn more in the [👉 main repository](https://github.com/Oleexo/mediator-go).
 
 ## Contributing
 
-Contributions are welcome! If you have new ideas or discover ways to enhance the project, feel free to submit a pull
-request. 🌟
+Contributions are welcome! If you have new ideas or discover ways to enhance the project, 
+feel free to submit a pull request. 🌟
 
 ## License
 
